@@ -4,6 +4,11 @@
 
 package main
 
+import (
+	"encoding/json"
+	"time"
+)
+
 // hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
@@ -30,6 +35,7 @@ func newHub() *Hub {
 }
 
 func (h *Hub) run() {
+	ticker := time.NewTicker(time.Duration(*updateRate) * time.Millisecond)
 	for {
 		select {
 		case client := <-h.register:
@@ -40,14 +46,20 @@ func (h *Hub) run() {
 				close(client.send)
 			}
 		case message := <-h.broadcast:
+			playerMsg := PlayerMsg{}
+			json.Unmarshal(message, playerMsg)
+			setDirection(playerMsg.ID, playerMsg.Direction)
+		case <-ticker.C:
+			posUpdates := move()
+			serializedMsg, _ := json.Marshal(posUpdates)
 			for client := range h.clients {
-				select {
-				case client.send <- message:
-				default:
-					close(client.send)
-					delete(h.clients, client)
-				}
+				client.send <- serializedMsg
 			}
 		}
 	}
+}
+
+type PlayerMsg struct {
+	ID        string    `json: "id"`
+	Direction Direction `json: "direction"`
 }
