@@ -25,13 +25,16 @@ func main() {
 
 func serveHome(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL)
-	if r.URL.Path != "/" {
-		http.Error(w, "Not found", 404)
-		return
-	}
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-	http.ServeFile(w, r, "index.html")
+	if r.URL.Path == "/" {
+		http.ServeFile(w, r, "index.html")
+	} else if r.URL.Path == "/assets/player.png" {
+		http.ServeFile(w, r, "assets/player.png")
+	} else {
+		http.Error(w, "Not found", 404)
+		return
+	}
 }

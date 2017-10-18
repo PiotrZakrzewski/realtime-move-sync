@@ -4,6 +4,14 @@
 <title>Real Time Movement Sync PoC</title>
 <script type="text/javascript">
 window.onload = function () {
+    let loadCharacterAsset = () => {
+        let newAsset = document.createElement('img');
+        newAsset.src = `assets/player.png`;
+        newAsset.onload = () => {
+            characterAsset = newAsset;
+        };
+    };
+    loadCharacterAsset();
     const NO_CHANGE = 0;
     const UP = 1
     const DOWN = 2
@@ -13,6 +21,7 @@ window.onload = function () {
 
     const clientDelay = 100;
     const radius = 25;
+    let characterAsset = null;
 
     let conn;
     let positions = {};
@@ -152,14 +161,15 @@ window.onload = function () {
         
         for (let characterID in interpolatedPositions) {
             const pos = interpolatedPositions[characterID];
-            if (pos === undefined) continue;
+            if (!characterAsset) break;
             const realX = pos.x - cornerPov.x;
             const realY = pos.y - cornerPov.y;
             let x = realX;
             let y = realY;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, 2 * Math.PI);
-            ctx.stroke();
+            const tx = x - 25;
+            const ty = y - 25;
+            let rotatedimg = rotateAndCache(characterAsset, pos.direction);
+            ctx.drawImage(rotatedimg,  tx, ty);
         }
         window.requestAnimationFrame(draw);
     }
@@ -169,7 +179,20 @@ window.onload = function () {
         y = y - height/2;
         return {x:x, y:y};
     }
+    let rotateAndCache = (image, angle) => {
+        const offscreenCanvas = document.createElement('canvas');
+        const offscreenCtx = offscreenCanvas.getContext('2d');
 
+        const size = 50;
+        offscreenCanvas.width = size;
+        offscreenCanvas.height = size;
+
+        offscreenCtx.translate(size/2, size/2);
+        offscreenCtx.rotate(angle - Math.PI/2);
+        offscreenCtx.drawImage(image, 0, 0, 32, 56, -(size/2), -(size/2), size, size);
+
+        return offscreenCanvas;
+    }
 };
 </script>
 <style type="text/css">
