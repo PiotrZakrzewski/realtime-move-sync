@@ -29,7 +29,6 @@ func toRadians(degree float64) float64 {
 	return radians
 }
 
-const moveOffset = 5
 const turningOffset = 0.3926991 // 22.5 degrees or 1/16th of a full turn
 
 func move() []*Position {
@@ -55,11 +54,11 @@ func move() []*Position {
 		}
 		pos.Direction += angularOffset
 		if dir.Forward == UP {
-			yOffset = math.Cos(pos.Direction) * -moveOffset
-			xOffset = math.Sin(pos.Direction) * moveOffset
+			yOffset = math.Cos(pos.Direction) * -*moveOffset
+			xOffset = math.Sin(pos.Direction) * *moveOffset
 		} else if dir.Forward == DOWN {
-			yOffset = math.Cos(pos.Direction) * moveOffset
-			xOffset = math.Sin(pos.Direction) * -moveOffset
+			yOffset = math.Cos(pos.Direction) * *moveOffset
+			xOffset = math.Sin(pos.Direction) * -*moveOffset
 		}
 		pos.X += xOffset
 		pos.Y += yOffset

@@ -8,6 +8,7 @@ import (
 
 var addr = flag.String("addr", "localhost:8080", "http service address")
 var updateRate = flag.Int("rate", 50, "Update rate for the game loop in miliseconds")
+var moveOffset = flag.Float64("speed", 10, "Movement speed of characters")
 
 func main() {
 	flag.Parse()
