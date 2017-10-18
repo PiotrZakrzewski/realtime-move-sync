@@ -40,7 +40,6 @@ window.onload = function () {
         };
         conn.onmessage = function (evt) {
             msg = JSON.parse(evt.data);
-            console.log(msg);
             if (msg['UUID']) {
                 const uuid = msg['UUID'];
                 clientId = uuid;
@@ -60,7 +59,6 @@ window.onload = function () {
     }
 
     let sendMsg = (msg) => {
-        console.log(msg);
         msg = JSON.stringify(msg);
         conn.send(msg);
     }
@@ -68,7 +66,6 @@ window.onload = function () {
     let handleKey = (e) => {
         const sourceKey = String.fromCharCode(e.keyCode).toLowerCase();
         if ((sourceKey === 'w' || sourceKey === 's') && e.type =='keyup') {
-            //state.dropEntry('movements', characterUUID);
             lastSync = null;
             let cmd = {'id':clientId, 'direction':{'forward':STOP, 'angular':NO_CHANGE}};
             sendMsg(cmd)
@@ -83,7 +80,6 @@ window.onload = function () {
             let cmd = {'id':clientId, 'direction':{'forward':direction, 'angular':NO_CHANGE}};
             sendMsg(cmd);
         } else if ( (sourceKey === 'a' || sourceKey === 'd') && e.type =='keyup' ) {
-            //state.dropEntry('torque', characterUUID);
             lastSync = null;
             let cmd = {'id':clientId, 'direction':{'forward':NO_CHANGE, 'angular':STOP}};
             sendMsg(cmd);
@@ -141,7 +137,6 @@ window.onload = function () {
         }
         return interpolated;
     }
-
     draw = () => {
         const interpolatedPositions = interpolate(positions);
         

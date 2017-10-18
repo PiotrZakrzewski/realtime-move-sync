@@ -46,24 +46,24 @@ func move() []*Position {
 		var xOffset float64
 		var yOffset float64
 		var angularOffset float64
-		if dir.Forward == UP {
-			xOffset = math.Cos(pos.Direction) * -moveOffset
-			yOffset = math.Sin(pos.Direction) * moveOffset
-		} else if dir.Forward == DOWN {
-			xOffset = math.Cos(pos.Direction) * moveOffset
-			yOffset = math.Sin(pos.Direction) * -moveOffset
-		}
 		if dir.Angular == LEFT {
 			angularOffset = -turningOffset
 		} else if dir.Angular == RIGHT {
 			angularOffset = turningOffset
+		} else {
+			angularOffset = 0.0
 		}
-		newX := pos.X + xOffset
-		newY := pos.Y + yOffset
-		pos.X = newX
-		pos.Y = newY
-		pos.Time = timeStamp
 		pos.Direction += angularOffset
+		if dir.Forward == UP {
+			yOffset = math.Cos(pos.Direction) * -moveOffset
+			xOffset = math.Sin(pos.Direction) * moveOffset
+		} else if dir.Forward == DOWN {
+			yOffset = math.Cos(pos.Direction) * moveOffset
+			xOffset = math.Sin(pos.Direction) * -moveOffset
+		}
+		pos.X += xOffset
+		pos.Y += yOffset
+		pos.Time = timeStamp
 		updates[i] = pos
 		i++
 	}
