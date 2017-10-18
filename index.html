@@ -19,6 +19,9 @@ window.onload = function () {
     const RIGHT = 4
     const STOP = 5
 
+    let currentForward = NO_CHANGE;
+    let currentTorque = NO_CHANGE;
+
     const clientDelay = 100;
     const radius = 25;
     let characterAsset = null;
@@ -67,8 +70,9 @@ window.onload = function () {
         const sourceKey = String.fromCharCode(e.keyCode).toLowerCase();
         if ((sourceKey === 'w' || sourceKey === 's') && e.type =='keyup') {
             lastSync = null;
-            let cmd = {'id':clientId, 'direction':{'forward':STOP, 'angular':NO_CHANGE}};
-            sendMsg(cmd)
+            currentForward = STOP;
+            let cmd = {'id':clientId, 'direction':{'forward':currentForward, 'angular':currentTorque}};
+            sendMsg(cmd);
         } else if ((sourceKey === 'w' || sourceKey === 's') && e.type =='keydown' && !pressedMap[e.keyCode]) {
             let direction = null;
             if (sourceKey == 'w') {
@@ -77,11 +81,13 @@ window.onload = function () {
                 direction = DOWN;
             }
             lastSync = new Date().getTime();
-            let cmd = {'id':clientId, 'direction':{'forward':direction, 'angular':NO_CHANGE}};
+            currentForward = direction;
+            let cmd = {'id':clientId, 'direction':{'forward':currentForward, 'angular':currentTorque}};
             sendMsg(cmd);
         } else if ( (sourceKey === 'a' || sourceKey === 'd') && e.type =='keyup' ) {
             lastSync = null;
-            let cmd = {'id':clientId, 'direction':{'forward':NO_CHANGE, 'angular':STOP}};
+            currentTorque = STOP;
+            let cmd = {'id':clientId, 'direction':{'forward':currentForward, 'angular':currentTorque}};
             sendMsg(cmd);
         } else if ((sourceKey === 'a' || sourceKey === 'd') && e.type =='keydown' && !pressedMap[e.keyCode]) {
             let direction = null;
@@ -91,7 +97,8 @@ window.onload = function () {
                 direction = RIGHT;
             }
             lastSync = new Date().getTime();
-            let cmd = {'id':clientId, 'direction':{'forward':NO_CHANGE, 'angular':direction}};
+            currentTorque = direction;
+            let cmd = {'id':clientId, 'direction':{'forward':currentForward, 'angular':currentTorque}};
             sendMsg(cmd);
         }
         pressedMap[e.keyCode] = e.type == 'keydown';
