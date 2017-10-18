@@ -127,9 +127,11 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), uuid: pseudoUUID()}
 	client.hub.register <- client
+	now := time.Now()
+	timeStamp := string(now.UnixNano() / 1000000)
 	registrationMsg := map[string]string{
 		"UUID": client.uuid,
-	}
+		"time": timeStamp}
 	marshalledMsg, _ := json.Marshal(registrationMsg)
 	client.send <- marshalledMsg
 	//writer, _ := conn.NextWriter(websocket.TextMessage)

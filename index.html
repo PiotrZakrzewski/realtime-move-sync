@@ -35,6 +35,7 @@ window.onload = function () {
     let pov_direction = 0.0;
     const canvasHeight = 750;
     const canvasWidth = 750;
+    let serverClientTimeDiff = 0;
 
     if (window["WebSocket"]) {
         conn = new WebSocket("ws://" + document.location.host + "/ws");
@@ -45,6 +46,8 @@ window.onload = function () {
             msg = JSON.parse(evt.data);
             if (msg['UUID']) {
                 const uuid = msg['UUID'];
+                const serverTime = parseInt(msg["time"]);
+                serverClientTimeDiff = serverTime - new Date().getTime();
                 clientId = uuid;
                 console.log("Received UUID from the server: " + uuid);
                 draw();
@@ -69,7 +72,6 @@ window.onload = function () {
     let handleKey = (e) => {
         const sourceKey = String.fromCharCode(e.keyCode).toLowerCase();
         if ((sourceKey === 'w' || sourceKey === 's') && e.type =='keyup') {
-            lastSync = null;
             currentForward = STOP;
             let cmd = {'id':clientId, 'direction':{'forward':currentForward, 'angular':currentTorque}};
             sendMsg(cmd);
@@ -80,12 +82,10 @@ window.onload = function () {
             } else if (sourceKey == 's') {
                 direction = DOWN;
             }
-            lastSync = new Date().getTime();
             currentForward = direction;
             let cmd = {'id':clientId, 'direction':{'forward':currentForward, 'angular':currentTorque}};
             sendMsg(cmd);
         } else if ( (sourceKey === 'a' || sourceKey === 'd') && e.type =='keyup' ) {
-            lastSync = null;
             currentTorque = STOP;
             let cmd = {'id':clientId, 'direction':{'forward':currentForward, 'angular':currentTorque}};
             sendMsg(cmd);
@@ -96,7 +96,6 @@ window.onload = function () {
             } else if (sourceKey == 'd') {
                 direction = RIGHT;
             }
-            lastSync = new Date().getTime();
             currentTorque = direction;
             let cmd = {'id':clientId, 'direction':{'forward':currentForward, 'angular':currentTorque}};
             sendMsg(cmd);
@@ -107,7 +106,7 @@ window.onload = function () {
     window.onkeyup = handleKey;
     let interpolate = (realPositions) => {
         const interpolated = {};
-        const now = new Date().getTime();
+        const now = new Date().getTime() + serverClientTimeDiff;
         const delayedNow = now - clientDelay;
         for (const _id in realPositions) {
             const queue = realPositions[_id];
