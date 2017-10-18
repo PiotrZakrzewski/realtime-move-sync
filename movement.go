@@ -16,8 +16,8 @@ const RIGHT = 4
 const STOP = 5
 
 type Direction struct {
-	forward int8
-	angular int8
+	Forward int8 `json:"forward"`
+	Angular int8 `json:"angular"`
 }
 
 func setDirection(character string, newDirection Direction) {
@@ -46,16 +46,16 @@ func move() []*Position {
 		var xOffset float64
 		var yOffset float64
 		var angularOffset float64
-		if dir.forward == UP {
+		if dir.Forward == UP {
 			xOffset = math.Cos(pos.Direction) * -moveOffset
 			yOffset = math.Sin(pos.Direction) * moveOffset
-		} else if dir.forward == DOWN {
+		} else if dir.Forward == DOWN {
 			xOffset = math.Cos(pos.Direction) * moveOffset
 			yOffset = math.Sin(pos.Direction) * -moveOffset
 		}
-		if dir.angular == LEFT {
+		if dir.Angular == LEFT {
 			angularOffset = -turningOffset
-		} else if dir.angular == RIGHT {
+		} else if dir.Angular == RIGHT {
 			angularOffset = turningOffset
 		}
 		newX := pos.X + xOffset

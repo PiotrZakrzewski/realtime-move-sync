@@ -5,6 +5,9 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -40,6 +43,9 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	send chan []byte
+
+	// uuid used on the client
+	uuid string
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -119,11 +125,26 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), uuid: pseudoUUID()}
 	client.hub.register <- client
-
+	registrationMsg := map[string]string{
+		"UUID": client.uuid,
+	}
+	marshalledMsg, _ := json.Marshal(registrationMsg)
+	client.send <- marshalledMsg
+	//writer, _ := conn.NextWriter(websocket.TextMessage)
+	//writer.Write(marshalledMsg)
+	log.Println("Registered: " + client.uuid)
+	positions[client.uuid] = &Position{ID: client.uuid, X: 250, Y: 250, Direction: 0.0, Time: 0}
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
 	go client.writePump()
 	go client.readPump()
+}
+
+func pseudoUUID() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	uuid := fmt.Sprintf("%X-%X-%X-%X-%X", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	return uuid
 }

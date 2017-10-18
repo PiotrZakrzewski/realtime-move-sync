@@ -4,15 +4,6 @@
 <title>Real Time Movement Sync PoC</title>
 <script type="text/javascript">
 window.onload = function () {
-    function guid() {
-        function s4() {
-            return Math.floor((1 + Math.random()) * 0x10000)
-            .toString(16)
-            .substring(1);
-        }
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-        s4() + '-' + s4() + s4() + s4();
-    }
     const NO_CHANGE = 0;
     const UP = 1
     const DOWN = 2
@@ -20,9 +11,13 @@ window.onload = function () {
     const RIGHT = 4
     const STOP = 5
 
+    const clientDelay = 100;
+    const radius = 25;
+
     let conn;
     let positions = {};
-    const clientId = guid();
+    let pressedMap = {};
+    let clientId = null;
     let pov_X = 250;
     let pov_Y = 250;
     let pov_direction = 0.0;
@@ -35,56 +30,66 @@ window.onload = function () {
             console.log("Connection closed");
         };
         conn.onmessage = function (evt) {
-            let updates = evt.data;
-            for (const entry of updates) {
-                const uuid = entry['id'];
-                if (!positions[uuid]) positions[uuid] = [];
-                let queue = positions[uuid];
-                queue.push(entry);
+            msg = JSON.parse(evt.data);
+            console.log(msg);
+            if (msg['UUID']) {
+                const uuid = msg['UUID'];
+                clientId = uuid;
+                console.log("Received UUID from the server: " + uuid);
+                draw();
+            } else {
+                for (const entry of msg['updates']) {
+                    const uuid = entry['id'];
+                    if (!positions[uuid]) positions[uuid] = [];
+                    let queue = positions[uuid];
+                    queue.push(entry);
+                }
             }
         };
     } else {
         console.log("Browser does not support websockets");
     }
 
+    let sendMsg = (msg) => {
+        console.log(msg);
+        msg = JSON.stringify(msg);
+        conn.send(msg);
+    }
+
     let handleKey = (e) => {
         const sourceKey = String.fromCharCode(e.keyCode).toLowerCase();
         if ((sourceKey === 'w' || sourceKey === 's') && e.type =='keyup') {
-            state.dropEntry('movements', this.characterUUID);
-            this.lastSync = null;
+            //state.dropEntry('movements', characterUUID);
+            lastSync = null;
             let cmd = {'id':clientId, 'direction':{'forward':STOP, 'angular':NO_CHANGE}};
-            cmd = JSON.stringify(cmd);
-            conn.send(cmd);
-        } else if ((sourceKey === 'w' || sourceKey === 's') && e.type =='keydown' && !this.pressedMap[e.keyCode]) {
+            sendMsg(cmd)
+        } else if ((sourceKey === 'w' || sourceKey === 's') && e.type =='keydown' && !pressedMap[e.keyCode]) {
             let direction = null;
             if (sourceKey == 'w') {
                 direction = UP;
             } else if (sourceKey == 's') {
                 direction = DOWN;
             }
-            this.lastSync = new Date().getTime();
+            lastSync = new Date().getTime();
             let cmd = {'id':clientId, 'direction':{'forward':direction, 'angular':NO_CHANGE}};
-            cmd = JSON.stringify(cmd);
-            conn.send(cmd);
+            sendMsg(cmd);
         } else if ( (sourceKey === 'a' || sourceKey === 'd') && e.type =='keyup' ) {
-            state.dropEntry('torque', this.characterUUID);
-            this.lastSync = null;
+            //state.dropEntry('torque', characterUUID);
+            lastSync = null;
             let cmd = {'id':clientId, 'direction':{'forward':NO_CHANGE, 'angular':STOP}};
-            cmd = JSON.stringify(cmd);
-            conn.send(cmd);
-        } else if ((sourceKey === 'a' || sourceKey === 'd') && e.type =='keydown' && !this.pressedMap[e.keyCode]) {
+            sendMsg(cmd);
+        } else if ((sourceKey === 'a' || sourceKey === 'd') && e.type =='keydown' && !pressedMap[e.keyCode]) {
             let direction = null;
             if (sourceKey == 'a') {
                 direction = LEFT;
             } else if (sourceKey == 'd') {
                 direction = RIGHT;
             }
-            this.lastSync = new Date().getTime();
+            lastSync = new Date().getTime();
             let cmd = {'id':clientId, 'direction':{'forward':NO_CHANGE, 'angular':direction}};
-            cmd = JSON.stringify(cmd);
-            conn.send(cmd);
+            sendMsg(cmd);
         }
-        this.pressedMap[e.keyCode] = e.type == 'keydown';
+        pressedMap[e.keyCode] = e.type == 'keydown';
     }
     window.onkeydown = handleKey;
     window.onkeyup = handleKey;
@@ -129,10 +134,10 @@ window.onload = function () {
     }
 
     draw = () => {
-        const positions = this.interpolate(positions);
+        const interpolatedPositions = interpolate(positions);
         
-        if (positions[clientId]) {
-            let pov = positions[clientId];
+        if (interpolatedPositions[clientId]) {
+            let pov = interpolatedPositions[clientId];
             pov_X = pov.x;
             pov_Y = pov.y;
             pov_direction = pov.direction;
@@ -145,25 +150,18 @@ window.onload = function () {
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        for (let characterID in positions) {
-            const pos = positions[characterID];
+        for (let characterID in interpolatedPositions) {
+            const pos = interpolatedPositions[characterID];
             if (pos === undefined) continue;
             const realX = pos.x - cornerPov.x;
             const realY = pos.y - cornerPov.y;
             let x = realX;
             let y = realY;
-            if (characterAsset) {
-                const tx = x - 25;
-                const ty = y - 25;
-                let rotatedimg = this.rotateAndCache(characterAsset, pos.direction);
-                ctx.drawImage(rotatedimg,  tx, ty);
-            } else {
-                ctx.beginPath();
-                ctx.arc(x, y, radius, 0, 2 * Math.PI);
-                ctx.stroke();
-            }
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+            ctx.stroke();
         }
-        window.requestAnimationFrame(this.draw);
+        window.requestAnimationFrame(draw);
     }
 
     let leftTopCorner = (x, y, width, height) => {

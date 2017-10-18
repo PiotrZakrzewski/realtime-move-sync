@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"time"
 )
 
@@ -47,15 +48,21 @@ func (h *Hub) run() {
 			}
 		case message := <-h.broadcast:
 			playerMsg := PlayerMsg{}
-			json.Unmarshal(message, playerMsg)
+			json.Unmarshal(message, &playerMsg)
+			log.Println("Received msg from the client:", playerMsg)
 			setDirection(playerMsg.ID, playerMsg.Direction)
 		case <-ticker.C:
 			posUpdates := move()
-			serializedMsg, _ := json.Marshal(posUpdates)
+			//if len(posUpdates) > 1 {
+			updateMsg := map[string][]*Position{
+				"updates": posUpdates,
+			}
+			serializedMsg, _ := json.Marshal(updateMsg)
 			for client := range h.clients {
 				client.send <- serializedMsg
 			}
 		}
+		//}
 	}
 }
 
