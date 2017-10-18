@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -128,7 +129,7 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), uuid: pseudoUUID()}
 	client.hub.register <- client
 	now := time.Now()
-	timeStamp := string(now.UnixNano() / 1000000)
+	timeStamp := strconv.Itoa(int(now.UnixNano() / 1000000))
 	registrationMsg := map[string]string{
 		"UUID": client.uuid,
 		"time": timeStamp}

@@ -50,6 +50,7 @@ window.onload = function () {
                 serverClientTimeDiff = serverTime - new Date().getTime();
                 clientId = uuid;
                 console.log("Received UUID from the server: " + uuid);
+                console.log("Server/client time difference is: " + serverClientTimeDiff);
                 draw();
             } else {
                 for (const entry of msg['updates']) {
@@ -102,8 +103,10 @@ window.onload = function () {
         }
         pressedMap[e.keyCode] = e.type == 'keydown';
     }
+
     window.onkeydown = handleKey;
     window.onkeyup = handleKey;
+
     let interpolate = (realPositions) => {
         const interpolated = {};
         const now = new Date().getTime() + serverClientTimeDiff;
