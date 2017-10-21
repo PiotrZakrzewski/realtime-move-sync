@@ -11,7 +11,9 @@ import (
 var addr = flag.String("addr", "localhost:8080", "http service address")
 var updateRate = flag.Int("rate", 50, "Update rate for the game loop in miliseconds")
 var moveOffset = flag.Float64("speed", 10, "Movement speed of characters")
-var botNo = flag.Int("bots", 50, "Number of bots")
+var botNo = flag.Int("bots", 0, "Number of bots")
+var collisionDetection = flag.Bool("collisions", false, "Collisions detetection on/off")
+var boundingSquare = flag.Int("bound", 20, "Bounding square size")
 
 func main() {
 	flag.Parse()
@@ -50,7 +52,9 @@ func bot(x1 float64, y1 float64) {
 	now := time.Now()
 	epoch := now.UnixNano() / 1000000
 	botUUID := pseudoUUID()
-	positions[botUUID] = &Position{ID: botUUID, X: x1, Y: y1, Direction: 0.0, Time: epoch}
+	pos := &Position{ID: botUUID, X: x1, Y: y1, Direction: 0.0, Time: epoch}
+	positions[botUUID] = pos
+	positionsArray = append(positionsArray, pos)
 	dir := Direction{Forward: UP, Angular: RIGHT}
 	setDirection(botUUID, dir)
 }

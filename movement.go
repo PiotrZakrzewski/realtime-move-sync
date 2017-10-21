@@ -8,6 +8,7 @@ import (
 
 var movements = make(map[string]*Direction)
 var positions = make(map[string]*Position)
+var positionsArray = make([]*Position, 0)
 
 const UP = 1
 const DOWN = 2
@@ -34,8 +35,7 @@ const turningOffset = 0.3926991 // 22.5 degrees or 1/16th of a full turn
 func move() []*Position {
 	now := time.Now()
 	timeStamp := now.UnixNano() / 1000000
-	updates := make([]*Position, len(movements))
-	i := 0
+	updates := make([]*Position, 0)
 	for id, dir := range movements {
 		pos := positions[id]
 		if pos == nil {
@@ -60,11 +60,13 @@ func move() []*Position {
 			yOffset = math.Cos(pos.Direction) * *moveOffset
 			xOffset = math.Sin(pos.Direction) * -*moveOffset
 		}
+		if *collisionDetection && !canMove(pos, pos.X+xOffset, pos.Y+yOffset, positionsArray, float64(*boundingSquare)) {
+			continue
+		}
 		pos.X += xOffset
 		pos.Y += yOffset
 		pos.Time = timeStamp
-		updates[i] = pos
-		i++
+		updates = append(updates, pos)
 	}
 	return updates
 }

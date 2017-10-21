@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	random "math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -130,7 +131,11 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	client.hub.register <- client
 	now := time.Now()
 	epoch := now.UnixNano() / 1000000
-	positions[client.uuid] = &Position{ID: client.uuid, X: 250, Y: 250, Direction: 0.0, Time: epoch}
+	startX := float64(random.Int() % 500)
+	startY := float64(random.Int() % 500)
+	pos := &Position{ID: client.uuid, X: startX, Y: startY, Direction: 0.0, Time: epoch}
+	positions[client.uuid] = pos
+	positionsArray = append(positionsArray, pos)
 	timeStamp := strconv.Itoa(int(epoch))
 	registrationMsg := map[string]string{
 		"UUID": client.uuid,
