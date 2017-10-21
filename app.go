@@ -31,7 +31,7 @@ func main() {
 }
 
 func serveHome(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
+	log.Println(r.URL.Path)
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", 405)
 		return
