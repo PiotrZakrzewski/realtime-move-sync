@@ -129,16 +129,15 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), uuid: pseudoUUID()}
 	client.hub.register <- client
 	now := time.Now()
-	timeStamp := strconv.Itoa(int(now.UnixNano() / 1000000))
+	epoch := now.UnixNano() / 1000000
+	positions[client.uuid] = &Position{ID: client.uuid, X: 250, Y: 250, Direction: 0.0, Time: epoch}
+	timeStamp := strconv.Itoa(int(epoch))
 	registrationMsg := map[string]string{
 		"UUID": client.uuid,
 		"time": timeStamp}
 	marshalledMsg, _ := json.Marshal(registrationMsg)
 	client.send <- marshalledMsg
-	//writer, _ := conn.NextWriter(websocket.TextMessage)
-	//writer.Write(marshalledMsg)
 	log.Println("Registered: " + client.uuid)
-	positions[client.uuid] = &Position{ID: client.uuid, X: 250, Y: 250, Direction: 0.0, Time: 0}
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
 	go client.writePump()

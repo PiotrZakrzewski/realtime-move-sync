@@ -3,15 +3,21 @@ package main
 import (
 	"flag"
 	"log"
+	random "math/rand"
 	"net/http"
+	"time"
 )
 
 var addr = flag.String("addr", "localhost:8080", "http service address")
 var updateRate = flag.Int("rate", 50, "Update rate for the game loop in miliseconds")
 var moveOffset = flag.Float64("speed", 10, "Movement speed of characters")
+var botNo = flag.Int("bots", 50, "Number of bots")
 
 func main() {
 	flag.Parse()
+	for i := 0; i < *botNo; i++ {
+		bot(float64(random.Int()%500), float64(random.Int()%500))
+	}
 	hub := newHub()
 	go hub.run()
 	go http.HandleFunc("/", serveHome)
@@ -38,4 +44,13 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not found", 404)
 		return
 	}
+}
+
+func bot(x1 float64, y1 float64) {
+	now := time.Now()
+	epoch := now.UnixNano() / 1000000
+	botUUID := pseudoUUID()
+	positions[botUUID] = &Position{ID: botUUID, X: x1, Y: y1, Direction: 0.0, Time: epoch}
+	dir := Direction{Forward: UP, Angular: RIGHT}
+	setDirection(botUUID, dir)
 }

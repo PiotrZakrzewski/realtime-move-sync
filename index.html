@@ -52,6 +52,8 @@ window.onload = function () {
                 console.log("Received UUID from the server: " + uuid);
                 console.log("Server/client time difference is: " + serverClientTimeDiff);
                 draw();
+                let cmd = {'id':clientId, 'direction':{'forward':currentForward, 'angular':currentTorque}};
+                sendMsg(cmd);
             } else {
                 for (const entry of msg['updates']) {
                     const uuid = entry['id'];
