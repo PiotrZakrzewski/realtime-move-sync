@@ -53,16 +53,16 @@ func (h *Hub) run() {
 			setDirection(playerMsg.ID, playerMsg.Direction)
 		case <-ticker.C:
 			posUpdates := move()
-			//if len(posUpdates) > 1 {
-			updateMsg := map[string][]*Position{
-				"updates": posUpdates,
-			}
-			serializedMsg, _ := json.Marshal(updateMsg)
-			for client := range h.clients {
-				client.send <- serializedMsg
+			if len(posUpdates) > 1 {
+				updateMsg := map[string][]*Position{
+					"updates": posUpdates,
+				}
+				serializedMsg, _ := json.Marshal(updateMsg)
+				for client := range h.clients {
+					client.send <- serializedMsg
+				}
 			}
 		}
-		//}
 	}
 }
 
