@@ -14,6 +14,7 @@ var moveOffset = flag.Float64("speed", 10, "Movement speed of characters")
 var botNo = flag.Int("bots", 0, "Number of bots")
 var collisionDetection = flag.Bool("collisions", false, "Collisions detetection on/off")
 var boundingSquare = flag.Int("bound", 20, "Bounding square size")
+var interpolation = flag.Bool("interpolation", false, "Use position interpolation and buffering")
 
 func main() {
 	flag.Parse()

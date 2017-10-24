@@ -35,6 +35,9 @@ const turningOffset = 0.3926991 // 22.5 degrees or 1/16th of a full turn
 func move() []*Position {
 	now := time.Now()
 	timeStamp := now.UnixNano() / 1000000
+	if !*interpolation {
+		timeStamp = 0
+	}
 	updates := make([]*Position, 0)
 	for id, dir := range movements {
 		pos := positions[id]
