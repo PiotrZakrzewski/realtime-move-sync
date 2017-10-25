@@ -1,6 +1,5 @@
 package main
 
-import "math"
 import "log"
 
 func isColliding(x1 float64, y1 float64, pos *Position, boundingSquare float64) bool {
@@ -23,19 +22,8 @@ func canMove(posFrom *Position, x float64, y float64, otherPositions []*Position
 			continue
 		}
 		if isColliding(x, y, pos, boundingSquare) {
-			log.Print("Truely collides")
 			return false
 		}
 	}
 	return true
-}
-
-const eps = 0.1
-
-func floatEqual(val1 float64, val2 float64) bool {
-	if math.Abs(val1-val2) < eps {
-		return true
-	} else {
-		return false
-	}
 }
