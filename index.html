@@ -38,7 +38,7 @@ window.onload = function () {
     let serverClientTimeDiff = 0;
 
     if (window["WebSocket"]) {
-        conn = new WebSocket("ws://" + document.location.host + "/ws");
+        conn = new WebSocket("ws://" + document.location.host + "/ws?scene=a&x=10&y=12");
         conn.onclose = function (evt) {
             console.log("Connection closed");
         };

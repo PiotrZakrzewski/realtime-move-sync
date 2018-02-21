@@ -32,7 +32,7 @@ func toRadians(degree float64) float64 {
 
 const turningOffset = 0.3926991 // 22.5 degrees or 1/16th of a full turn
 
-func move() []*Position {
+func move(scene string) []*Position {
 	now := time.Now()
 	timeStamp := now.UnixNano() / 1000000
 	if !*interpolation {
@@ -41,6 +41,9 @@ func move() []*Position {
 	updates := make([]*Position, 0)
 	for id, dir := range movements {
 		pos := positions[id]
+		if pos.Scene != scene {
+			continue
+		}
 		if pos == nil {
 			log.Println("Tried to move id without position: " + id)
 			continue
@@ -76,6 +79,7 @@ func move() []*Position {
 
 type Position struct {
 	ID        string  `json:"id"`
+	Scene     string  `json:"scene"`
 	X         float64 `json:"x"`
 	Y         float64 `json:"y"`
 	Direction float64 `json:"direction"`

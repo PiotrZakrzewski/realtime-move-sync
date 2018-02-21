@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	random "math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -48,6 +47,9 @@ type Client struct {
 
 	// uuid used on the client
 	uuid string
+
+	// scene
+	scene string
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -123,17 +125,18 @@ func (c *Client) writePump() {
 // serveWs handles websocket requests from the peer.
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
+	scene := r.URL.Query().Get("scene")
+	startX, err := strconv.ParseFloat(r.URL.Query().Get("x"), 64)
+	startY, err := strconv.ParseFloat(r.URL.Query().Get("y"), 64)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), uuid: pseudoUUID()}
+	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), uuid: pseudoUUID(), scene: scene}
 	client.hub.register <- client
 	now := time.Now()
 	epoch := now.UnixNano() / 1000000
-	startX := float64(random.Int() % 500)
-	startY := float64(random.Int() % 500)
-	pos := &Position{ID: client.uuid, X: startX, Y: startY, Direction: 0.0, Time: epoch}
+	pos := &Position{Scene: scene, ID: client.uuid, X: startX, Y: startY, Direction: 0.0, Time: epoch}
 	positions[client.uuid] = pos
 	positionsArray = append(positionsArray, pos)
 	timeStamp := strconv.Itoa(int(epoch))

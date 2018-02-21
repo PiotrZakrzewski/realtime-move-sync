@@ -24,6 +24,9 @@ type Hub struct {
 
 	// Unregister requests from clients.
 	unregister chan *Client
+
+	// Scenes and clients who belong to it
+	scenes map[string][]*Client
 }
 
 func newHub() *Hub {
@@ -32,15 +35,18 @@ func newHub() *Hub {
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
+		scenes:     make(map[string][]*Client),
 	}
 }
 
 func (h *Hub) run() {
 	ticker := time.NewTicker(time.Duration(*updateRate) * time.Millisecond)
+	garbageTicker := time.NewTicker(time.Duration(*collectionRate) * time.Millisecond)
 	for {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
+			h.scenes[client.scene] = append(h.scenes[client.scene], client)
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
@@ -52,15 +58,35 @@ func (h *Hub) run() {
 			log.Println("Received msg from the client:", playerMsg)
 			setDirection(playerMsg.ID, playerMsg.Direction)
 		case <-ticker.C:
-			posUpdates := move()
-			if len(posUpdates) > 1 {
-				updateMsg := map[string][]*Position{
-					"updates": posUpdates,
+			for scene, clients := range h.scenes {
+				posUpdates := move(scene)
+				if len(posUpdates) > 0 {
+					updateMsg := map[string][]*Position{
+						"updates": posUpdates,
+					}
+					serializedMsg, _ := json.Marshal(updateMsg)
+					for _, client := range clients {
+						client.send <- serializedMsg
+					}
 				}
-				serializedMsg, _ := json.Marshal(updateMsg)
-				for client := range h.clients {
-					client.send <- serializedMsg
+			}
+		case <-garbageTicker.C:
+			deadScenes := make([]string, 0)
+			for scene, clients := range h.scenes {
+				dead := true
+				for _, client := range clients {
+					if h.clients[client] {
+						dead = false
+						break
+					}
 				}
+				if dead {
+					deadScenes = append(deadScenes, scene)
+				}
+			}
+			for _, deadScene := range deadScenes {
+				delete(h.scenes, deadScene)
+
 			}
 		}
 	}

@@ -9,21 +9,19 @@ import (
 )
 
 var addr = flag.String("addr", "localhost:8080", "http service address")
-var updateRate = flag.Int("rate", 50, "Update rate for the game loop in miliseconds")
+var updateRate = flag.Int("rate", 50, "Update rate for the game loop in milliseconds")
+var collectionRate = flag.Int("collection", 1000, "Interval at which empty scenes are collected")
 var moveOffset = flag.Float64("speed", 10, "Movement speed of characters")
-var botNo = flag.Int("bots", 0, "Number of bots")
-var collisionDetection = flag.Bool("collisions", false, "Collisions detetection on/off")
+var collisionDetection = flag.Bool("collisions", false, "Collisions detection on/off")
 var boundingSquare = flag.Int("bound", 20, "Bounding square size")
 var interpolation = flag.Bool("interpolation", false, "Use position interpolation and buffering")
 
 func main() {
 	flag.Parse()
-	for i := 0; i < *botNo; i++ {
-		bot(float64(random.Int()%500), float64(random.Int()%500))
-	}
+	go http.HandleFunc("/", serveHome)
 	hub := newHub()
 	go hub.run()
-	go http.HandleFunc("/", serveHome)
+	bot(float64(random.Int()%500), float64(random.Int()%500))
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
@@ -48,12 +46,11 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 func bot(x1 float64, y1 float64) {
 	now := time.Now()
 	epoch := now.UnixNano() / 1000000
 	botUUID := pseudoUUID()
-	pos := &Position{ID: botUUID, X: x1, Y: y1, Direction: 0.0, Time: epoch}
+	pos := &Position{Scene: "a", ID: botUUID, X: x1, Y: y1, Direction: 0.0, Time: epoch}
 	positions[botUUID] = pos
 	positionsArray = append(positionsArray, pos)
 	dir := Direction{Forward: UP, Angular: RIGHT}

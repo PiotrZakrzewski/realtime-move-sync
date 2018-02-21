@@ -21,7 +21,7 @@ func canMove(posFrom *Position, x float64, y float64, otherPositions []*Position
 		if posFrom == pos {
 			continue
 		}
-		if isColliding(x, y, pos, boundingSquare) {
+		if posFrom.Scene == pos.Scene && isColliding(x, y, pos, boundingSquare) {
 			return false
 		}
 	}
