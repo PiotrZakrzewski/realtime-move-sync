@@ -125,13 +125,13 @@ func (c *Client) writePump() {
 // serveWs handles websocket requests from the peer.
 func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
-	scene := r.URL.Query().Get("scene")
-	startX, err := strconv.ParseFloat(r.URL.Query().Get("x"), 64)
-	startY, err := strconv.ParseFloat(r.URL.Query().Get("y"), 64)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	scene := r.URL.Query().Get("scene")
+	startX, err := strconv.ParseFloat(r.URL.Query().Get("x"), 64)
+	startY, err := strconv.ParseFloat(r.URL.Query().Get("y"), 64)
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), uuid: pseudoUUID(), scene: scene}
 	client.hub.register <- client
 	now := time.Now()
